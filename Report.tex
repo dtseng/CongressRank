@@ -27,180 +27,37 @@
 
 \begin{document}
 
-\title{Problem 4}
-\author{David Tseng}
+\title{CongressRank: A PageRank Application}
+\author{Chandler Chen, David Tseng}
 \date{\today}
 \maketitle
 
-\begin{enumerate}
-\item The gradient of the negative log likelihood is
-$$\nabla_w l(w)= 2 \lambda w + X^T (\vec \mu - \vec y) \text{,}$$
-where $\vec \mu = [\mu(x_1)\  \mu(x_2) ... \mu(x_n)]^T$ and $\mu(x) = \frac{1}{1 + e^{-x_i^T w}}$. \\
-Then the gradient descent equation is: 
-$$w := w - \alpha(2 \lambda w + X^T (\vec \mu - \vec y))$$
-Plots for batch gradient descent, $\lambda$ = 1e-4, $\alpha$ = 1e-5\\
-\begin{center}
-\includegraphics[width=0.75\linewidth]{batch_binarize.png}\\
-\includegraphics[width=0.75\linewidth]{batch_standardize.png}\\
-\includegraphics[width=0.75\linewidth]{batch_logtransformed.png}
-\end{center}
-
-\item The gradient of the negative log likelihood is 
-$$\nabla_w l(w)= 2 \lambda w + X^T (\vec \mu - \vec y) = 2 \lambda w  + \sum_{i=1}^{N}(\mu_i - y_i)x_i$$
-The stochastic gradient descent rule can be rewritten as:
-$$w = w - \alpha(\mu_i - y_i) x_i$$
-assuming that we first randomize the ordering of the data and $i$ represents the iteration number. Here are the plots, with  $\lambda$ = 1e-4, $\alpha$ = 2e-3\\
-\begin{center}
-\includegraphics[width=0.75\linewidth]{stochastic_logtransform.png}\\
-\includegraphics[width=0.75\linewidth]{stochastic_binarize.png}\\
-\includegraphics[width=0.75\linewidth]{stochastic_standardize.png}
-\end{center}
-The plots from SGD take more iterations to converge than GD, because SGD only updates one data point at a time, while GD looks at the entire data set in every iteration. Also, the training loss line appears to be more "jagged", again since it only updates one data point at a time. 
-\item Here are the plots with decreasing learning rate. The initial learning rate is 0.5, and $\lambda = $ 1e-4. Using this strategy isn't completely better, because it has its own advantages and disadvantages. Using a decreasing learning rate allows SGD to converge much more quickly, but the value it converges at is not necessarily more accurate. In this case, SGD with a decreasing learning rate ends up with a less accurate model than SGD with a constant learning rate.
-\begin{center}
-\includegraphics[width=0.75\linewidth]{decreasing_binarize.png}\\
-\includegraphics[width=0.75\linewidth]{decreasing_standardize.png}\\
-\includegraphics[width=0.75\linewidth]{decreasing_logtransform.png}
-\end{center}
-\item For the Kaggle competition, I first split up the given data into training and validation sets. I made a chart of several values of 1e-5 $\leq \alpha \leq $ 1 and 1e-5 $\leq \lambda \leq $ 1, and manually looked at the accuracy of each pair. I eventually settled with $\lambda$ and $\alpha$ close to 1e-4.
-
-\end{enumerate}
-
-\newpage
-\begin{lstlisting}
-from mnist import MNIST
-import sklearn.metrics as metrics
-import numpy as np
-import scipy.io as sio
-import matplotlib.pyplot as plt
-
-def train_and_plot_sgd(X_train, y_train, title, alpha=0.1, reg=0, num_iter=10000, learnDecrease=False):
-    ''' Build a model from X_train -> y_train using stochastic gradient descent '''
-    import random
-    W = np.zeros((X_train.shape[1], 1))
-    N = X_train.shape[0]
-    sequence = []
-    plotGDx = []
-    plotGDy = []
-    k = 0
-
-    for i in range(0, num_iter//N):
-        sequence = sequence + random.sample(range(0, N), N)
-    sequence = sequence + random.sample(range(0, N), num_iter%N)
-
-    for i in sequence:
-        plotGDx = plotGDx + [k]
-        plotGDy = plotGDy + [loss_function(X_train, y_train, W, reg)]
-        xi = X_train[i]
-        xi = xi.reshape(xi.shape[0], 1)
-        h = 1/(1+np.exp(-1*xi.T.dot(W)))
-        if learnDecrease and k != 0:
-            W = W - alpha/k * ((h - y_train[i]) * xi + 2 * reg * W)
-        else:
-            W = W - alpha*((h-y_train[i])*xi + 2*reg*W)
-        k = k + 1
-
-    pred_train = predict(W, X_train)
-    print("Train accuracy: {0}".format(metrics.accuracy_score(y_train, pred_train)))
-
-    plt.plot(plotGDx, plotGDy)
-    plt.title('Stochastic Gradient Descent with ' + title)
-    plt.xlabel('Number of iterations')
-    plt.ylabel('Training Loss')
-    plt.show()
-    return W
-
-def train_and_plot_gd(X_train, y_train, title, alpha=0.1, reg=0, num_iter=10000):
-    X = X_train
-    W = np.zeros((X_train.shape[1], 1))
-    X_T = X_train.transpose()
-    plotGDx = []
-    plotGDy = []
-    for i in range(0, num_iter):
-        XW = X.dot(W)
-        h = 1 / (1 + np.exp(-1 * XW))
-        W = W - alpha * (X_T.dot(h - y_train) + 2*reg * W)
-        plotGDx = plotGDx + [i]
-        plotGDy = plotGDy + [loss_function(X_train, y_train, W, reg)]
-
-    pred_train = predict(W, X_train)
-    print("Train accuracy: {0}".format(metrics.accuracy_score(y_train, pred_train)))
-
-    plt.plot(plotGDx, plotGDy)
-    plt.title('Batch Gradient Descent with ' + title)
-    plt.xlabel('Number of iterations')
-    plt.ylabel('Training Loss')
-    plt.show()
-    return W
+\section*{Introduction}
+When a bill is introduced to Congress, the original proponent is usually called the \textit{sponsor}. Congress members who support the bill can sign onto the bill as a \textit{cosponsor}. The political community tends to place emphasis on cosponsorships, as it is thought that a bill with more cosponsorships demonstrates a greater support base. Thus, the number of cosponsorships of a bill is an indicator of the popularity of the bill among Congress members. Since a Congress member will only agree to cosponsor a sponsor's bill if he or she agrees with the bill's contents, a cosponsorship can also symbolize the cosponsor's support for and agreement with the sponsor. We believe that by analyzing the network of cosponsorships, we will have a better understanding of the power dynamics and unity within Congress. 
 
 
-def loss_function(X_train, y_train, model, reg=0):
-    XW = X_train.dot(model)
-    part1 = y_train.transpose().dot(np.log(1+np.exp(-1*XW)))
-    part2 = (1-y_train).transpose().dot(np.log(1+np.exp(XW))) + 2*reg*np.linalg.norm(model)
-    to_return = part1 + part2
-    return np.asscalar(to_return)
-
-def predict(model, X):
-    ''' From model and data points, output prediction vectors '''
-    XW = np.dot(X, model)
-    return np.round(1/(1+np.exp(-1*XW)))
-
-def binarize(X):
-    return np.where(X > 0, 1, 0)
-
-def standardize(X):
-    m = np.mean(X, axis=0)
-    s = np.std(X, axis=0)
-    mean = np.tile(m, (X.shape[0], 1))
-    std_dev = np.tile(s, (X.shape[0], 1))
-    return (X - mean)/std_dev
-
-def logTransform(X):
-    return np.log(X + 0.1)
-
-def kaggleSubmission(model, Xtest):
-    kagglePrediction = predict(model, Xtest)
-    id = np.array(range(1, kagglePrediction.shape[0]+1))
-    submission = np.column_stack((id, kagglePrediction))
-    np.savetxt("predictions.csv", submission.astype(int), fmt='%i', delimiter=",")
-
-def loadData(file):
-    data = sio.loadmat(file)
-    Xtest = np.array(data['Xtest'])
-    Xtrain = np.array(data['Xtrain'])
-    ytrain = np.array(data['ytrain'])
-    return Xtest, Xtrain, ytrain
-
-def splitAndTrain(Xtrain, ytrain, fn):
-    cutoff = np.ceil(Xtrain.shape[0] * .7)
-    Xtrain1 = Xtrain[0: cutoff]
-    ytrain1 = ytrain[0: cutoff]
-    Xtest1 = Xtrain[cutoff:]
-    ytest1 = ytrain[cutoff:]
-    model = fn(Xtrain1, ytrain1, alpha=0.1, reg=1e-3, num_iter=20000)
-    pred_train = predict(model, Xtrain1)
-    pred_test = predict(model, Xtest1)
-    print("Train accuracy: {0}".format(metrics.accuracy_score(ytrain1, pred_train)))
-    print("Test accuracy: {0}".format(metrics.accuracy_score(ytest1, pred_test)))
-    return model
-
-def saveModel(model):
-    np.save("model", model)
-
-def loadModel():
-    return np.load("model.npy")
-
-#Data loading
-Xtest, Xtrain, ytrain = loadData("spam.mat")
-Xtrain = standardize(Xtrain) #binarize, logTransform, or standardize
-
-print("starting..")
-train_and_plot_gd(Xtrain, ytrain, "log transformed data", alpha=1e-5, reg=1e-4,  num_iter=4000)
-# train_and_plot_sgd(Xtrain, ytrain, "standardized data", alpha=0.5, reg=1e-4, num_iter=1000, learnDecrease=True)
+% include graphic of edge pointing from cosponsor to sponsor. 
 
 
-\end{lstlisting}
+\section*{Methods}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \end{document}	
