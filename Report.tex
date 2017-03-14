@@ -3,6 +3,8 @@
 \usepackage{graphicx}
 \usepackage{amsmath,textcomp,amssymb,geometry,graphicx,enumerate}
 \usepackage{amssymb}
+\usepackage{algorithm} % Boxes/formatting around algorithms
+\usepackage[noend]{algpseudocode} % Algorithms
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{listings}
 \definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0}
@@ -33,26 +35,45 @@
 \maketitle
 
 \section*{Introduction}
-When a bill is introduced to Congress, the original proponent is usually called the \textit{sponsor}. Congress members who support the bill can sign onto the bill as a \textit{cosponsor}. The political community tends to place emphasis on cosponsorships, as it is believed that a bill with more cosponsorships demonstrates a greater support base. Thus, the number of cosponsorships of a bill is an indicator of the popularity of the bill among Congress members. Since a Congress member will only agree to cosponsor a sponsor's bill if he or she agrees with the bill's contents, a cosponsorship can also symbolize the cosponsor's support for and agreement with the sponsor. We believe that by analyzing the network of cosponsorships, we can have a better understanding of the power dynamics and unity within Congress. 
+When a bill is introduced to Congress, the original proponent is usually called the \textit{sponsor}. Congress members who support the bill can sign onto the bill as a \textit{cosponsor}. The political community places great emphasis on cosponsorships, as it is believed that a bill with more cosponsorships demonstrates a greater support base. Thus, the number of cosponsorships of a bill is an indicator of the popularity of the bill among Congress members. Since a Congress member will only agree to cosponsor a sponsor's bill if he or she agrees with the bill's contents, a cosponsorship can also symbolize the cosponsor's support for and agreement with the sponsor. We believe that by analyzing the network of cosponsorships, we can have a better understanding of the power dynamics and unity within Congress. 
 
+In this project, we used PageRank to analyze the cosponsorship graph. PageRank is a ranking algorithm developed to find the stationary distribution of a Markov Chain, where a crawler visits other nodes (where neighboring nodes are chosen uniformly at random) for many iterations. As the number of iterations increases, the percentage of visits a node receives converges to the graph's stationary distribution, and nodes are ranked based on the number of visits they receive. 
 
 % include graphic of edge pointing from cosponsor to sponsor. 
 
 
 \section*{Methods}
-We decided to use bill data from the 114th Congress (2015-2017), since this was the most recent Congress with two years of data. In the cosponsorship graph, each node represented a Congress member, and Congress member $u$'s cosponsorship of member $v$ is represented as a directed edge from $u$ to $v$. 
+In our project, we represented each Congress member as a node. If member $u$ cosponsors member $v$, then a directed edge is placed from $u$ to $v$ on the graph. If $u$ cosponsors $v$ on $x$ different bills, there will be $x$ distinct directed edges from $u$ to $v$. All Representatives, Senators, and non-voting members are represented the same way. 
+
+We decided to use data from the 114th Congress (2015-2017), since this was the most recent Congress that completed its term. Although the 114th Congress had 100 Senators, 435 Representatives, and 6 non-voting members, there were 7 additional members who left Congress before their term ended. Therefore, we included a total of 548 members (nodes) in our graph. To extract the bill and member data, we used ProPublica's Congress API, which presented us the data in a convenient JSON format. 
 
 
-
-
-
-% talk about number of Congress members. There are more members because we are including the nonvoting members. 
 
 %http://tex.stackexchange.com/questions/160540/how-to-number-figures-continuously-in-documentclassarticle
 
 
 
+\textbf{Pseudocode}\\
+\begin{algorithmic}[1]
+\Procedure{createGraph}{bills}
+\State graph = empty dictionary, mapping each of the 548 members to an empty list.   This will be a graph mapping a member to a list of people he/she cosponsored. 
+\For{bill in bills}
+	\State $u$ = bill[sponsor]
+	\For {cosponsor in bill[cosponsors]}
+		\State graph[cosponsor].append()
+	\EndFor 
 
+
+\EndFor
+
+
+
+
+
+
+
+\EndProcedure
+\end{algorithmic}
 
 
 
