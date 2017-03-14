@@ -6,26 +6,7 @@
 \usepackage{algorithm} % Boxes/formatting around algorithms
 \usepackage[noend]{algpseudocode} % Algorithms
 \usepackage[usenames,dvipsnames]{color}
-\usepackage{listings}
-\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0}
-\lstloadlanguages{python}
-\lstset{language=python,
-        frame=single,
-        basicstyle=\small\ttfamily,
-        keywordstyle=[1]\color{Blue}\bf,
-        keywordstyle=[2]\color{Purple},
-        keywordstyle=[3]\color{Red},
-        identifierstyle=,
-        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small,
-        stringstyle=\color{Purple},
-        showstringspaces=false,
-        tabsize=2,
-        morecomment=[l][\color{Blue}]{...},
-        numbers=left,
-        numberstyle=\tiny,
-        breaklines=true,
-%        title=\lstname                             %commented out since we're not providing .java files this time -NF
-}
+
 
 \begin{document}
 
@@ -90,7 +71,7 @@ We decided to use data from the 114th Congress (2015-2017), since this was the m
 Above is the pseudocode we used to generate our graph and run our PageRank algorithm. We retrieved the list of bills and their sponsors and cosponsors by using calls to ProPublica's Congress API. 
 
 \section*{Experiment 1: Results and Analysis}
-For Experiment 1, we included all bills that were introduced by the 114th Congress, and all of their corresponding sponsors and cosponsors. We used a $p$=0.15 (probability of resetting to a random node) and ran the PageRank algorithm for 100,000 steps. If we decrease $p$ or increase $p$ to 0.20, the rankings remain relatively the same. If we further increase $p$ to even higher values, the results become more uniformly random, so we believe it is more meaningful to keep the $p$ value to around 0.15. 
+For Experiment 1, we included all bills that were introduced by the 114th Congress, and all of their corresponding sponsors and cosponsors. We set $p$=0.15 (probability of resetting to a random node) and ran the PageRank algorithm for 100,000 steps. If we decrease $p$ or increase $p$ to 0.20, the rankings remain relatively the same. If we further increase $p$ to even higher values, the results become more uniformly random, so we believe it is more meaningful to keep the $p$ value to around 0.15. 
 
 
 \begin{table}[h!]
@@ -139,17 +120,78 @@ For Experiment 1, we included all bills that were introduced by the 114th Congre
 \label{table:experiment1_2}
 \end{table}
 
-Tables \ref{table:experiment1} and \ref{table:experiment1_2} list the resulting top 10 Representatives and Senators from our data. The second column displays the number of visits each member received during the course of the PageRank algorithm, normalized by the maximum number received. One interesting thing to note is that almost every top 10 member is a Republican, even though we included members from both parties. Since we analyzed all bills that were introduced, this captures the most interactions possible between members via bills. From this analysis, it seems like Republicans were generally more unified compared to Democrats during the 2015-2017 Congress. This makes sense, because Republicans controlled both the House and the Senate during this period of time. Politicians tend to support other politicians in the same party, so therefore the Republicans' advantage in numbers boosted their rankings. 
+Tables \ref{table:experiment1} and \ref{table:experiment1_2} list the resulting top 10 Representatives and Senators from our data. The second column displays the number of visits each member received during the course of the PageRank algorithm, normalized by the maximum number received. From our results, it appears that Diane Black and Orrin Hatch are the most popular in their respective chambers. One interesting thing to note is that almost every top 10 member is a Republican, even though we included members from both parties. Since we analyzed all bills that were introduced, this captures the most interactions possible between members via bills. From this analysis, it seems like Republicans were generally more unified compared to Democrats during the 2015-2017 Congress. This makes sense, because Republicans controlled both the House and the Senate during this period of time. Politicians tend to support other politicians in the same party, so therefore the Republicans' advantage in numbers boosted their rankings. 
 
 We also noted that some members with leadership positions (such as Nancy Pelosi, Paul Ryan, Mitch McConnell) actually had relatively low rankings. For example, Mitch McConnell ranked 91 within the 100 Senators. It seems like ranking members based on a network of cosponsorships is not necessarily a good indication of actual influence in Congress. This may be because we included every bill that is introduced, so a person who writes many insignificant bills can accumulate more cosponsorships, leading to skewed results.
 
 \section*{Experiment 2: Results and Analysis}
-For our next experiment, we decided to only analyze bills that were actually signed into law. 
+For our next experiment, we decided to only analyze bills that were actually signed into law. We ran PageRank on this filtered dataset, using the same parameters as before. 
 
 
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c | c |c |c|} 
+ \hline
+ Rank & Normalized No. Visits & Name & Party \\ [0.5ex] 
+ \hline
+1  & 1.000000 &Sam Johnson & R \\  
+2  & 0.801382 &Bill Posey & R \\  
+3  & 0.741576 &Carolyn Maloney & D \\  
+4  & 0.715829 &Terri Sewell & D \\  
+5  & 0.706899 &Jeff Fortenberry & R \\  
+6  & 0.590983 &Brett Guthrie & R \\  
+7  & 0.567227 &Martha McSally & R \\  
+8  & 0.548026 &Seth Moulton & D \\  
+9  & 0.507255 &Edward Royce & R \\  
+10 &  0.337657 & Christopher Smith & R \\  
+ \hline
+ 
+\end{tabular}
+\caption{Top 10 ranking of Representatives, using only bills that were signed into law.}
+\label{table:experiment2}
+\end{table}
 
-
-
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c | c |c |c|} 
+ \hline
+ Rank & Normalized No. Visits & Name & Party \\ [0.5ex] 
+ \hline
+1 & 1.000000 & John Cornyn & R \\ 
+2 & 0.713656 & Roy Blunt & R \\ 
+3 & 0.683725 & Orrin Hatch & R \\ 
+4 & 0.627329 & Dianne Feinstein & D \\ 
+5 & 0.525480 & Mazie Hirono & D \\ 
+6 & 0.492836 & Benjamin Cardin & D \\ 
+7 & 0.421928 & Sheldon Whitehouse & D \\ 
+8 & 0.320936 & Patrick Leahy & D \\ 
+9 & 0.280296 & Heidi Heitkamp & D \\ 
+10& 0.278308 & Rob Portman & R \\  \hline
+ 
+\end{tabular}
+\caption{Top 10 ranking of Representatives, using only bills that were signed into law.}
+\label{table:experiment2_2}
+\end{table}
+ 
+Tables \ref{table:experiment2} and \ref{table:experiment2_2} show the results of this experiment. It now appears that Sam Johnson and John Cornyn have the highest ranking in their respective chambers. We note that the proportion of Democrats in the top 10 category is now higher than it was in the previous experiment. One possible 
+ 
+ 
+ 
+Since we are only looking at the bills that are actually passed in Congress, the rankings represent more about the level of influence of each member. This is corroborated by the fact that people in leadership positions (Paul Ryan, Nancy Pelosi, Mitch McConnell) all have higher rankings than in the previous experiment. While Mitch McConnell was ranked 91st previously, he now ranks 15th. This shows that indeed, the second experiment shows more about each member's influence in Congress. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
 
 \pagebreak
