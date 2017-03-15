@@ -26,7 +26,7 @@ In this project, we used PageRank to analyze the cosponsorship graph. PageRank i
 
 
 \section*{Methods}
-In our project, we represented each Congress member as a node. If member $u$ cosponsors member $v$ on a bill, then a directed edge is placed from $u$ to $v$ on the graph. If $u$ cosponsors $v$ on $x$ different bills, there will be $x$ parallel directed edges from $u$ to $v$. Representatives and Senators are analyzed in separate graphs. 
+In our project, we represented each Congress member as a node. If member $u$ cosponsors member $v$ on a bill, then a directed edge is placed from $u$ to $v$ on the graph. If $u$ cosponsors $v$ on $x$ different bills, there will be $x$ parallel directed edges from $u$ to $v$. Since outgoing edges are chosen uniformly at random in PageRank, if there are more parallel directed edges from $u$ to $v$, the crawler will have a higher probability of visiting $v$ from $u$. Representatives and Senators are analyzed in separate graphs. 
 
 We decided to use data from the 114th Congress (2015-2017), since this was the most recent Congress that completed its term. Although the 114th Congress had 100 Senators, 435 Representatives, and 6 non-voting members, there were 7 additional members who left Congress before their term ended. Therefore, we included a total of 548 members (nodes) in our graph. To extract the bill and member data, we used ProPublica's Congress API, which presented us the data in a convenient JSON format. \\
 
@@ -41,9 +41,8 @@ We decided to use data from the 114th Congress (2015-2017), since this was the m
 \Procedure{createGraph}{bills}
 \State graph = dictionary initialized to a mapping between each member to an empty list. This will be a mapping between each member to a list of members that he/she cosponsored, i.e., a dictionary mapping each node to a list of adjacent nodes. 
 \For{bill in bills}
-	\State $u$ = bill[sponsor]
 	\For {cosponsor in bill[cosponsors]}
-		\State graph[cosponsor].append(sponsor)
+		\State graph[cosponsor].append(sponsor) 
 	\EndFor 
 \EndFor
 \State \Return graph
@@ -60,7 +59,7 @@ We decided to use data from the 114th Congress (2015-2017), since this was the m
 		\State currentMember = randomly chosen member
 	\Else
 		\State neighbors = graph[currentMember] // list of adjacent nodes
-		\State currentMember = randomly chosen member from neighbors
+		\State currentMember = randomly chosen member from neighbors, uniformly at random
 	\EndIf
 	\State membersNumVisits[currentMember] += 1
 
@@ -73,7 +72,7 @@ We decided to use data from the 114th Congress (2015-2017), since this was the m
 Above is the pseudocode we used to generate our graph and run our PageRank algorithm. We retrieved the list of bills and their sponsors and cosponsors by using calls to ProPublica's Congress API. 
 
 \section*{Experiment 1: Results and Analysis}
-For Experiment 1, we included all bills that were introduced by the 114th Congress, and all of their corresponding sponsors and cosponsors. We set $p$=0.15 (probability of resetting to a random node) and ran the PageRank algorithm for 100,000 steps. If we decrease $p$ to 0.05 or increase $p$ to 0.20, the rankings remain relatively the same. If we further increase $p$ to even higher values, the results become more uniformly random, so we believe it is more meaningful to keep the $p$ at1 around 0.15. 
+For Experiment 1, we included cosponsorships of all bills that were introduced by the 114th Congress, and all of their corresponding sponsors and cosponsors. We set $p$=0.15 (probability of resetting to a random node) and ran the PageRank algorithm for 100,000 steps. If we decrease $p$ to 0.05 or increase $p$ to 0.20, the rankings remain relatively the same. If we further increase $p$ to even higher values, the results become more uniformly random, so we believe it is more meaningful to keep  $p$ at around 0.15. 
 
 
 \begin{table}[h!]
@@ -124,10 +123,10 @@ For Experiment 1, we included all bills that were introduced by the 114th Congre
 
 Tables \ref{table:experiment1} and \ref{table:experiment1_2} list the resulting top 10 Representatives and Senators from our data. The second column displays the number of visits each member received during the course of the PageRank algorithm, normalized by the maximum number received. From our results, it appears that Diane Black and Orrin Hatch are the most popular in their respective chambers. One interesting thing to note is that almost every top 10 member is a Republican, even though we included members from both parties. Since we analyzed all bills that were introduced, this captures the most interactions possible between members via bills. From this analysis, it seems like Republicans were generally more unified compared to Democrats during the 2015-2017 Congress. This makes sense, because Republicans controlled both the House and the Senate during this period of time. Politicians tend to support other politicians in the same party, so therefore the Republicans' advantage in numbers boosted their rankings. 
 
-We also noted that some members with leadership positions (such as Nancy Pelosi, Paul Ryan, Mitch McConnell) actually had relatively low rankings. For example, Mitch McConnell ranked 91 within the 100 Senators. It seems like ranking members based on a network of cosponsorships is not necessarily a good indication of actual influence in Congress. This may be because we included every bill that is introduced, so a person who writes many insignificant bills can accumulate more cosponsorships, leading to skewed results.
+We also noted that some members with leadership positions (such as Nancy Pelosi, Paul Ryan, Mitch McConnell) actually had relatively low rankings. For example, Mitch McConnell ranked 91 within the 100 Senators. It seems like ranking members based on a network of cosponsorships of all bills is not necessarily a good indication of actual influence in Congress. This may be because we included every bill that is introduced, so a person who writes many insignificant bills can accumulate more cosponsorships, leading to skewed results.
 
 \section*{Experiment 2: Results and Analysis}
-For our next experiment, we decided to only analyze bills that were actually signed into law. We ran PageRank on this filtered dataset, using the same parameters as before. 
+For our next experiment, we decided to only analyze cosponsorships of bills that were actually signed into law. We ran PageRank on this filtered dataset, using the same parameters as before. 
 
 
 \begin{table}[h!]
@@ -175,27 +174,10 @@ For our next experiment, we decided to only analyze bills that were actually sig
 \label{table:experiment2_2}
 \end{table}
  
-Tables \ref{table:experiment2} and \ref{table:experiment2_2} show the results of this experiment. It now appears that Sam Johnson and John Cornyn have the highest ranking in their respective chambers. We note that the proportion of Democrats in the top 10 category is now higher than it was in the previous experiment. One possible explanation is that by only considering cosponsorships on bills that were eventually signed into law, the rankings are more representative of the members' level of influence than their popularity. This explanation is also supported by the fact that people in leadership positions (Paul Ryan, Nancy Pelosi, Mitch McConnell) all have higher rankings here compared to the previous experiment. While Mitch McConnell was ranked 91st previously, he now ranks 15th. This shows that indeed, the second experiment shows more about each member's influence in Congress. 
+Tables \ref{table:experiment2} and \ref{table:experiment2_2} show the results of this experiment. It now appears that Sam Johnson and John Cornyn have the highest ranking in their respective chambers. We note that the proportion of Democrats in the top 10 category is now higher than it was in the previous experiment. One possible explanation is that by only considering cosponsorships on bills that were eventually signed into law, the rankings are more representative of the members' level of influence than their popularity.  This idea is also supported by the fact that people in leadership positions (Paul Ryan, Nancy Pelosi, Mitch McConnell) all have higher rankings here compared to the previous experiment. For example, while Mitch McConnell was ranked 91st previously, he now ranks 15th. This shows that indeed, the second experiment shows more about each member's influence in Congress. 
+Because the Democrats make up approximately half of the people in the top 10, it seems like the Democrats have almost equal influence as Republicans. 
  
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-
-\pagebreak
-
-
-
 
 % include example of networkx graph. 
 
@@ -216,11 +198,18 @@ Tables \ref{table:experiment2} and \ref{table:experiment2_2} show the results of
 \section*{Discussion and Limitations}
 There are several limitations to our approaches. One limitation is that although we were only aiming to analyze the 114th Congress, many members were already in Congress before 2015, and they had many more contributions before then. So while our rankings may show some general trends in popularity/support from the interactions in 2015-2017, it does not include interactions between members that were already there before 2015.
 
-Our model is also limited by omitting the relative importance of each considered bill. For instance, hr6135-114, a bill \textit{To designate the Federal building and United States courthouse located at 719 Church Street in Nashville, Tennessee, as the "Fred D. Thompson Federal Building and United States Courthouse"} may not be as important as a huge defense bill. True, this notion of importance is subjective, so objective importance may be better approximated with the quantifiable amount of discretionary spending put forth in each bill. Even this approach is flawed since large trade deals or important foreign policies may be excluded, but it remains a step in the right direction.
+Our model is also limited by omitting the relative importance of each considered bill. For instance, H.R.6135-114, a bill \textit{To designate the Federal building and United States courthouse located at 719 Church Street in Nashville, Tennessee, as the "Fred D. Thompson Federal Building and United States Courthouse"} may not be as important as a major defense bill. True, this notion of importance is subjective, so objective importance may be better approximated with the quantifiable amount of discretionary spending put forth in each bill. Even this approach is flawed since large trade deals or important foreign policies may be excluded, but it remains a step in the right direction.
 % did not take into account the fact that some bills are more important than others. Weighed each bill the same amount. 
-% Dicussion: We can see that cosponsorships does not really have a correlation with leadership in Congress. 
+% Dicussion: We can see that cosponsorships does not really have a correlation with leadership in Congress.
 
-It's interesting to note, that strong correlation fails to exist between the ability to pass bills and having a heavy network of cosponsors within each chamber. Congress members do spend a significant portion of their time gathering cosponsors for their bills, perhaps the time should better be spent on more productive tasks. 
+Overall, despite these limitations, our PageRank algorithm produced some very interesting results. While Republicans may have enjoyed higher levels of popularity in the 114th Congress, Democrats and Republicans shared somewhat equal levels of influence. 
+
+
+
+
+
+
+%It's interesting to note, that strong correlation fails to exist between the ability to pass bills and having a heavy network of cosponsors within each chamber. Congress members do spend a significant portion of their time gathering cosponsors for their bills, perhaps the time should better be spent on more productive tasks. 
 
 
 % We only looked at 2 years, which is not the same as their actual contributions over time
